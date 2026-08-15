@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Runway — Launch Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #f1fbfa;
+    --panel: #ffffff;
+    --ink: #073f3b;
+    --muted: #5b8f8c;
+    --hair: rgba(7,63,59,0.12);
+
+    --ip-1: #00CED1;
+    --ip-2: #008080;
+    --ip-glow: rgba(0,206,209,0.35);
+
+    --cp-1: #2E8B57;
+    --cp-2: #20B2AA;
+    --cp-glow: rgba(46,139,87,0.30);
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html{ color-scheme: light; }
+
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(0,206,209,0.10), transparent 38%),
+      radial-gradient(circle at 88% 92%, rgba(46,139,87,0.08), transparent 40%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Inter', -apple-system, sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:6vh 6vw 4vh;
+  }
+
+  /* ---------------- HERO ---------------- */
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:2.5px;
+    text-transform:uppercase;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    opacity:0;
+    animation: rise 0.6s ease forwards;
+  }
+
+  .eyebrow::before{
+    content:"";
+    width:7px; height:7px;
+    border-radius:50%;
+    background: var(--ip-1);
+    box-shadow: 0 0 0 4px rgba(0,206,209,0.18);
+  }
+
+  h1{
+    font-family:'Sora', sans-serif;
+    font-weight:800;
+    font-size: clamp(2.4rem, 5.2vw, 4rem);
+    letter-spacing:-1.5px;
+    line-height:1.05;
+    margin-top:14px;
+    text-align:center;
+    max-width:820px;
+    opacity:0;
+    animation: rise 0.7s ease 0.08s forwards;
+  }
+
+  h1 span{
+    background: linear-gradient(100deg, var(--ip-2), var(--ip-1) 45%, var(--cp-2) 75%, var(--cp-1));
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+  }
+
+  .sub{
+    margin-top:16px;
+    font-size:16px;
+    color:var(--muted);
+    text-align:center;
+    max-width:520px;
+    line-height:1.55;
+    opacity:0;
+    animation: rise 0.7s ease 0.16s forwards;
+  }
+
+  @keyframes rise{
+    from{ opacity:0; transform:translateY(14px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  /* ---------------- PANEL ---------------- */
+
+  .panel{
+    margin-top:64px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:28px;
+    width:100%;
+    max-width:960px;
+  }
+
+  @media (max-width: 760px){
+    .panel{ grid-template-columns:1fr; }
+  }
+
+  .card{
+    position:relative;
+    background:var(--panel);
+    border:1px solid var(--hair);
+    border-radius:26px;
+    padding:38px 32px 32px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    box-shadow:0 14px 34px rgba(7,63,59,0.07);
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease, border-color .35s ease;
+    opacity:0;
+    animation: rise 0.7s ease forwards;
+    text-decoration:none;
+    color:inherit;
+    outline-offset: 4px;
+  }
+
+  .card:nth-of-type(1){ animation-delay:.26s; }
+  .card:nth-of-type(2){ animation-delay:.34s; }
+
+  .card:hover, .card:focus-visible{
+    transform:translateY(-6px);
+  }
+
+  .card--ip:hover, .card--ip:focus-visible{
+    box-shadow:0 26px 54px var(--ip-glow);
+    border-color: rgba(0,206,209,0.4);
+  }
+  .card--cp:hover, .card--cp:focus-visible{
+    box-shadow:0 26px 54px var(--cp-glow);
+    border-color: rgba(46,139,87,0.4);
+  }
+
+  /* dial */
+
+  .dial{
+    width:112px; height:112px;
+    position:relative;
+    margin-bottom:22px;
+  }
+
+  .dial svg{ width:100%; height:100%; }
+
+  .dial-ring{
+    fill:none;
+    stroke-width:2;
+  }
+  .card--ip .dial-ring{ stroke: rgba(0,128,128,0.18); }
+  .card--cp .dial-ring{ stroke: rgba(46,139,87,0.18); }
+
+  .dial-progress{
+    fill:none;
+    stroke-width:3;
+    stroke-linecap:round;
+    stroke-dasharray: 251;
+    stroke-dashoffset: 40;
+    transition: stroke-dashoffset .5s ease;
+    transform-origin:center;
+    transform:rotate(-90deg);
+  }
+  .card--ip .dial-progress{ stroke: url(#ipGrad); }
+  .card--cp .dial-progress{ stroke: url(#cpGrad); }
+
+  .card:hover .dial-progress{ stroke-dashoffset: 8; }
+
+  .dial-needle{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Sora', sans-serif;
+    font-weight:700;
+    font-size:26px;
+  }
+  .card--ip .dial-needle{ color:var(--ip-2); }
+  .card--cp .dial-needle{ color:var(--cp-1); }
+
+  .callsign{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+
+  .card h2{
+    font-family:'Sora', sans-serif;
+    font-size:24px;
+    font-weight:700;
+    letter-spacing:-0.4px;
+    margin-bottom:10px;
+  }
+
+  .card p.desc{
+    font-size:14.5px;
+    color:var(--muted);
+    line-height:1.55;
+    max-width:280px;
+    margin-bottom:22px;
+  }
+
+  .status{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:20px;
+  }
+
+  .status-dot{
+    width:6px; height:6px;
+    border-radius:50%;
+  }
+  .card--ip .status-dot{ background:var(--ip-1); box-shadow:0 0 0 3px rgba(0,206,209,0.18); }
+  .card--cp .status-dot{ background:var(--cp-1); box-shadow:0 0 0 3px rgba(46,139,87,0.18); }
+
+  .launch-btn{
+    width:100%;
+    padding:13px 0;
+    border-radius:12px;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    color:#fff;
+    border:none;
+    letter-spacing:0.2px;
+    transition: filter .25s ease, transform .2s ease;
+  }
+  .card--ip .launch-btn{ background:linear-gradient(120deg, var(--ip-2), var(--ip-1)); }
+  .card--cp .launch-btn{ background:linear-gradient(120deg, var(--cp-2), var(--cp-1)); }
+
+  .card:hover .launch-btn{ filter:brightness(1.07); }
+
+  .port-row{
+    margin-top:14px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    color:var(--muted);
+  }
+
+  .port-row input{
+    width:56px;
+    text-align:center;
+    border:1px solid var(--hair);
+    border-radius:6px;
+    padding:3px 4px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink);
+    background:#fbfffe;
+  }
+  .port-row input:focus{
+    outline:2px solid var(--ip-1);
+    outline-offset:1px;
+  }
+
+  /* ---------------- FOOTER ---------------- */
+
+  footer{
+    margin-top:56px;
+    text-align:center;
+    max-width:560px;
+  }
+
+  footer p{
+    font-size:12.5px;
+    color:var(--muted);
+    line-height:1.7;
+  }
+
+  footer code{
+    font-family:'JetBrains Mono', monospace;
+    background: rgba(7,63,59,0.06);
+    padding:1px 6px;
+    border-radius:5px;
+    font-size:11.5px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- gradient defs for the dial rings -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="ipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#008080"/>
+      <stop offset="100%" stop-color="#00CED1"/>
+    </linearGradient>
+    <linearGradient id="cpGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2E8B57"/>
+      <stop offset="100%" stop-color="#20B2AA"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<div class="eyebrow">Local launch console</div>
+
+<h1> Skill2Success AI <span></span></h1>
+<p class="sub">Pick a tool to open it in your browser. Each one runs on its own local Streamlit server — start it first, then launch it here.</p>
+
+<div class="panel">
+
+  <a class="card card--ip" id="ipCard" href="http://localhost:8501" target="_blank" rel="noopener">
+    <div class="dial">
+      <svg viewBox="0 0 100 100">
+        <circle class="dial-ring" cx="50" cy="50" r="40"></circle>
+        <circle class="dial-progress" cx="50" cy="50" r="40"></circle>
+      </svg>
+      <div class="dial-needle">🎯</div>
+    </div>
+    <div class="callsign">Callsign · IP-01</div>
+    <h2>Interview Pilot</h2>
+    <p class="desc">Mock interviews, resume checks and skill-gap analysis — built and flown by you.</p>
+    <div class="status"><span class="status-dot"></span>Ready on localhost</div>
+    <button class="launch-btn" type="button">Launch Interview Pilot →</button>
+    <div class="port-row" onclick="event.preventDefault()">
+      <span>port</span>
+      <input id="ipPort" type="text" value="8501" inputmode="numeric" onclick="event.stopPropagation()" />
+    </div>
+  </a>
+
+  <a class="card card--cp" id="cpCard" href="http://localhost:8501" target="_blank" rel="noopener">
+    <div class="dial">
+      <svg viewBox="0 0 100 100">
+        <circle class="dial-ring" cx="50" cy="50" r="40"></circle>
+        <circle class="dial-progress" cx="50" cy="50" r="40"></circle>
+      </svg>
+      <div class="dial-needle">🚀</div>
+    </div>
+    <div class="callsign">Callsign · CP-01</div>
+    <h2>CareerPilot</h2>
+    <p class="desc">Career matching, skill gaps and a learning roadmap — built and flown by your co-pilot.</p>
+    <div class="status"><span class="status-dot"></span>Ready on localhost</div>
+    <button class="launch-btn" type="button">Launch CareerPilot →</button>
+    <div class="port-row" onclick="event.preventDefault()">
+      <span>port</span>
+      <input id="cpPort" type="text" value="8502" inputmode="numeric" onclick="event.stopPropagation()" />
+    </div>
+  </a>
+
+</div>
+
+<footer>
+  <p>
+    Each card opens <code>http://localhost:&lt;port&gt;</code> in a new tab. If a port doesn't match
+    what you used in <code>streamlit run app.py --server.port &lt;port&gt;</code>, edit the number
+    above the button first — it's remembered for next time.
+  </p>
+</footer>
+
+<script>
+  const ipPort = document.getElementById('ipPort');
+  const cpPort = document.getElementById('cpPort');
+  const ipCard = document.getElementById('ipCard');
+  const cpCard = document.getElementById('cpCard');
+
+  function loadPort(input, key, fallback){
+    const saved = localStorage.getItem(key);
+    input.value = saved || fallback;
+  }
+  function applyHref(card, port){
+    card.href = `http://localhost:${port}`;
+  }
+
+  loadPort(ipPort, 'ip-port', '8501');
+  loadPort(cpPort, 'cp-port', '8502');
+  applyHref(ipCard, ipPort.value);
+  applyHref(cpCard, cpPort.value);
+
+  ipPort.addEventListener('input', () => {
+    localStorage.setItem('ip-port', ipPort.value);
+    applyHref(ipCard, ipPort.value || '8501');
+  });
+  cpPort.addEventListener('input', () => {
+    localStorage.setItem('cp-port', cpPort.value);
+    applyHref(cpCard, cpPort.value || '8502');
+  });
+</script>
+
+</body>
+</html>
